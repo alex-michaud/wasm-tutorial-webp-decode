@@ -16,9 +16,9 @@
           // third parameter is an array of parameter types (empty array if we don't pass parameters to the function)
           encoder_version: Module.cwrap('encoder_version', 'number', []),
           decoder_version: Module.cwrap('decoder_version', 'number', []),
-          get_result_size: Module.cwrap('get_result_size', 'number', []),
-          get_result_pointer: Module.cwrap('decoder_version', 'number', []),
-          free_result: Module.cwrap('free_result', null, ['string']),
+          get_result_size: Module.cwrap('get_result_size', 'number', []), // not used for now
+          get_result_pointer: Module.cwrap('get_result_pointer', 'number', []), // not used for now
+          free_result: Module.cwrap('free_result', null, ['string']), // not used for now
           decode: Module.cwrap('decode', 'number', ['number', 'number']),
           get_info: Module.cwrap('get_info', 'number', ['number', 'number'])
         };
@@ -29,13 +29,15 @@
 </head>
 <body>
 
-<div>
-    <h4>src</h4>
-    <img src="./golden_retriever_puppy.webp" alt="golder retriever" id="src_image">
-</div>
-<div>
-    <h4>dest</h4>
-    <img src="" alt="" id="dest_image">
+<div style="display: grid; grid-template-columns: repeat(4, 1fr)">
+    <div style="grid-column: 1 / 2">
+        <h4>src</h4>
+        <img src="./golden_retriever_puppy.webp" alt="golder retriever" id="src_image">
+    </div>
+    <div style="grid-column: 3 / 4">
+        <h4>dest</h4>
+        <img src="" alt="" id="dest_image">
+    </div>
 </div>
 
 </body>

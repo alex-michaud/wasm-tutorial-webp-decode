@@ -1,4 +1,23 @@
-https://developer.mozilla.org/en-US/docs/WebAssembly/existing_C_to_wasm
+# WebAssembly tutorial
+
+This project aim to show a practical usage example for WebAssembly where we 
+decode a webp image format and transform it to a jpeg image.
+
+With this, we could make any browser display a webp image even if they don't 
+support the format.   
+
+## References
+[existing_C_to_wasm](https://developer.mozilla.org/en-US/docs/WebAssembly/existing_C_to_wasm)
+
+[on-the-fly-webp-decoding](https://medium.com/@kennethrohde/on-the-fly-webp-decoding-using-wasm-and-a-service-worker-33e519d8c21e)
+
+[emscripten](https://emscripten.org/docs/index.html)
+
+[web assembly browser support](https://caniuse.com/#feat=wasm)
+
+[use cases for webassembly](https://webassembly.org/docs/use-cases/#inside-the-browser)
+
+[curated list of WebAssembly projects](https://github.com/mbasso/awesome-wasm)
 
 ## Download and install Emscripten sdk
 
@@ -51,7 +70,7 @@ git clone https://github.com/webmproject/libwebp
 ./webp.sh
 ```
 
-### emcc
+### Notes about the emscripten compiler *(webp.sh)*
 
 -01 simple optimizations
 

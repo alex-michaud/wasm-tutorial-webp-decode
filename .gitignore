@@ -204,3 +204,4 @@ dist
 /libwebp/
 /webp_module.js
 /webp_module.wasm
+/.idea/
