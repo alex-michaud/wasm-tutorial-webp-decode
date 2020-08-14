@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./webp_module.js"></script>
+    <script>
+      let WebpModule = null;
+      // async method that run as soon as our module is initialized
+      Module.onRuntimeInitialized = async () => {
+        // this is where we wrap the c methods to javascript
+        WebpModule = {
+          // Module.cwrap is an emscripten method
+          // first parameter is the name of the function to be wrapped
+          // second parameter is the return type of the function
+          // third parameter is an array of parameter types (empty array if we don't pass parameters to the function)
+          encoder_version: Module.cwrap('encoder_version', 'number', []),
+          decoder_version: Module.cwrap('decoder_version', 'number', []),
+          get_result_size: Module.cwrap('get_result_size', 'number', []),
+          get_result_pointer: Module.cwrap('decoder_version', 'number', []),
+          free_result: Module.cwrap('free_result', null, ['string']),
+          decode: Module.cwrap('decode', 'number', ['number', 'number']),
+          get_info: Module.cwrap('get_info', 'number', ['number', 'number'])
+        };
+        console.log(`encoder version ${WebpModule.encoder_version().toString(16)}`);
+        console.log(`decoder version ${WebpModule.decoder_version().toString(16)}`);
+      };
+    </script>
+</head>
+<body>
+
+<div>
+    <h4>src</h4>
+    <img src="./golden_retriever_puppy.webp" alt="golder retriever" id="src_image">
+</div>
+<div>
+    <h4>dest</h4>
+    <img src="" alt="" id="dest_image">
+</div>
+
+</body>
+<script>
+
+  // detect if browser support webp or not
+  const supportsWebp = async() => {
+    if (!this.createImageBitmap) return false;
+    const webpData = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
+    const blob = await fetch(webpData).then(r => r.blob());
+    return createImageBitmap(blob).then(() => true, () => false);
+  }
+
+  // retrieve webp image width and height
+  const info = ({ size, ptr }) => {
+    const info_ptr = WebpModule.get_info(ptr, size);
+    const success = !!Module.getValue(info_ptr, 'i32');
+    if (!success) {
+      Module._free(info_ptr);
+      return { width: null, height: null };
+    }
+    const width = Module.getValue(info_ptr + 4, 'i32');
+    const height = Module.getValue(info_ptr + 8, 'i32');
+
+    Module._free(info_ptr);
+
+    return { width, height };
+  }
+
+  // decode the webp image to an Uint8ClampedArray
+  const decode = ({size, ptr, width, height}) => {
+    const resultPtr = WebpModule.decode(ptr, size);
+    const resultView = new Uint8Array(Module.HEAPU8.buffer, resultPtr, width * height * 4);
+    const result = new Uint8ClampedArray(resultView);
+    Module._free(resultPtr);
+
+    return result;
+  }
+
+  (async() => {
+
+    const isSupportWebp = await supportsWebp();
+    console.log('support webp', isSupportWebp)
+
+    const srcImageElement = document.getElementById('src_image');
+    const destImageElement = document.getElementById('dest_image');
+
+    if (!isSupportWebp || true) {
+      // fetch file and store response in a buffer
+      const response = await fetch(srcImageElement.src);
+      const buffer = await response.arrayBuffer();
+      const size = buffer.byteLength;
+      const ptr = Module._malloc(size);
+      Module.HEAPU8.set(new Uint8Array(buffer), ptr);
+
+      // retrieve webp source image width and height
+      // (a browser that doesn't support webp won't be able to retrieve that info, so we use the webp library)
+      const { width, height } = info({ size, ptr });
+
+      // use webp library to retrieve a Uint8ClampedArray of the webp image
+      const result = decode({ size, ptr, width, height });
+
+      // with the buffer array and width and height of the image, we can create an ImageData object
+      const newDestImage = new ImageData(result, width, height);
+
+      // prepare the canvas and context
+      const canvas = document.createElement('canvas');
+      canvas.width = srcImageElement.clientWidth;
+      canvas.height = srcImageElement.clientHeight;
+      const context = canvas.getContext('2d');
+      // put ImageData object (newDestImage) into the context
+      context.putImageData(newDestImage, 0, 0);
+
+      // now that the canvas have the data, we convert it to a jpeg data url
+      destImageElement.src = canvas.toDataURL('image/jpeg');
+    }
+  })();
+</script>
+</html>
